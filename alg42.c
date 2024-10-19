@@ -11,7 +11,10 @@ bool isInDefinedArea(const double x, const double y) {
     return false;
 }
 
-
+/*
+ * Определить попадание точки в заданную область на плоскости (см. вложенный рисунок)
+ * Указание: точку задать парой координат x, y вещественного типа.
+ */
 int main(void) {
     int count = 1;
 
