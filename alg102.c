@@ -1,10 +1,22 @@
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 
-// Функция для сравнения строк для сортировки
-int compareStrings(const void *a, const void *b) {
-    return strcmp(*(const char **)a, *(const char **)b);
+// Функция для обмена местами двух строк
+void swap(char **a, char **b) {
+    char *temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+// Функция сортировки пузырьком
+void bubbleSort(char *arr[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - 1 - i; j++) {
+            if (strcmp(arr[j], arr[j + 1]) > 0) {
+                swap(&arr[j], &arr[j + 1]);
+            }
+        }
+    }
 }
 
 int main() {
@@ -38,8 +50,8 @@ int main() {
     }
     printf(".\n");
 
-    // Сортируем слова в алфавитном порядке
-    qsort(words, wordCount, sizeof(char *), compareStrings);
+    // Сортируем слова в алфавитном порядке с помощью пузырьковой сортировки
+    bubbleSort(words, wordCount);
 
     // Вывод слов в алфавитном порядке
     printf("\nПоследовательность в алфавитном порядке:\n");
