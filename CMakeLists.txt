@@ -29,9 +29,14 @@ add_executable(alg142 alg142.c)
 add_executable(alg151 alg151.c)
 add_executable(alg151Tests alg151Tests.c)
 add_executable(alg173 alg173.c)
-add_executable(complexn complexn.c)
+add_executable(complexnTests complexnTests.c)
+
 
 add_library(list listImpl.c)
+add_library(complexn complexnImpl.c)
 
-target_link_libraries(alg151Tests list)
 target_link_libraries(alg151 list)
+target_link_libraries(alg151Tests list)
+
+target_link_libraries(alg131 complexn)
+target_link_libraries(complexnTests complexn)
