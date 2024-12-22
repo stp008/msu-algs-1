@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #define GENETIC_CODE_SIZE 64
 
@@ -88,6 +89,89 @@ void countTripletsInFile(const char *filename) {
     }
 }
 
+#ifdef TESTS
+void test_getRandomTriplet() {
+    const char* triplet = getRandomTriplet();
+    int found = 0;
+    for (int i = 0; i < GENETIC_CODE_SIZE; i++) {
+        if (strcmp(triplet, genetic_code[i].triplet) == 0) {
+            found = 1;
+            break;
+        }
+    }
+    assert(found && "getRandomTriplet вернул неверный триплет");
+    printf("Тест getRandomTriplet пройден.\n");
+}
+
+void test_writeTripletsToFile() {
+    const char* filename = "test_sequence.txt";
+    int N = 10;
+    writeTripletsToFile(N, filename);
+
+    FILE* file = fopen(filename, "r");
+    assert(file != NULL && "Файл не создан");
+
+    char buffer[100];
+    fread(buffer, sizeof(char), N * 3, file);
+    fclose(file);
+
+    buffer[N * 3] = '\0';
+    assert(strlen(buffer) == N * 3 && "Длина содержимого файла не соответствует ожидаемой");
+
+    for (int i = 0; i < N * 3; i += 3) {
+        char triplet[4] = {buffer[i], buffer[i + 1], buffer[i + 2], '\0'};
+        int found = 0;
+        for (int j = 0; j < GENETIC_CODE_SIZE; j++) {
+            if (strcmp(triplet, genetic_code[j].triplet) == 0) {
+                found = 1;
+                break;
+            }
+        }
+        assert(found && "Файл содержит неверный триплет");
+    }
+    printf("Тест writeTripletsToFile пройден.\n");
+}
+
+void test_countTripletsInFile() {
+    const char* filename = "test_sequence_count.txt";
+    int N = 10;
+    writeTripletsToFile(N, filename);
+
+    FILE* file = fopen(filename, "r");
+    assert(file != NULL && "Файл не создан");
+
+    int counts[GENETIC_CODE_SIZE] = {0};
+
+    // Генерируем ожидаемые данные
+    for (int i = 0; i < N; i++) {
+        const char* triplet = getRandomTriplet();
+        for (int j = 0; j < GENETIC_CODE_SIZE; j++) {
+            if (strcmp(triplet, genetic_code[j].triplet) == 0) {
+                counts[j]++;
+                break;
+            }
+        }
+    }
+
+    fclose(file);
+
+    // Проверяем с помощью countTripletsInFile
+    countTripletsInFile(filename);
+
+    // Файл выводит данные, мы проверяем это визуально в этом случае
+    printf("Тест countTripletsInFile пройден (необходима визуальная проверка).\n");
+}
+
+int main() {
+    test_getRandomTriplet();
+    test_writeTripletsToFile();
+    test_countTripletsInFile();
+    printf("Все тесты пройдены.\n");
+    return 0;
+}
+
+#else
+
 int main() {
     int N;
     printf("Введите количество аминокислотных остатков (1 <= N <= 1000): ");
@@ -106,3 +190,5 @@ int main() {
 
     return 0;
 }
+
+#endif

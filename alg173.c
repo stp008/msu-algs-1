@@ -1,17 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <assert.h>
 
 #define MAX_DNA_LENGTH 3000
-#define NUCLEOTIDES "ACGT"
 #define GENETIC_CODE_SIZE 64
-#define AMINO_ACID_GROUPS 4
-#define AMINO_ACID_GROUP_SIZE 8
 
 typedef struct {
     char triplet[4];  // Триплет нуклеотидов
-    char amino_acid[5];  // Аминокислота (3 буквы)
+    char amino_acid[5];  // Аминокислота
 } GeneticCode;
+
+// Массив возможных замен для каждого нуклеотида
+const char nucleotides[4][3] = {
+    {'C', 'G', 'T'}, // Для 'A'
+    {'A', 'G', 'T'}, // Для 'C'
+    {'A', 'C', 'T'}, // Для 'G'
+    {'A', 'C', 'G'}  // Для 'T'
+};
 
 // Генетический код для триплетов
 const GeneticCode genetic_code[GENETIC_CODE_SIZE] = {
@@ -33,14 +40,6 @@ const GeneticCode genetic_code[GENETIC_CODE_SIZE] = {
     {"GGT", "Gly"}, {"GGC", "Gly"}, {"GGA", "Gly"}, {"GGG", "Gly"}
 };
 
-// Группы аминокислот
-const char* amino_acid_groups[AMINO_ACID_GROUPS][AMINO_ACID_GROUP_SIZE] = {
-    {"Ala", "Gly", "Phe", "Val", "Ile", "Leu", "Pro", "Met"},
-    {"Asn", "Ser", "Cys", "Gln", "Thr", "Tyr"},
-    {"Arg", "Lys", "His"},
-    {"Asp", "Glu"}
-};
-
 // Функция для поиска аминокислоты по триплету
 const char* get_amino_acid(const char* triplet) {
     for (int i = 0; i < GENETIC_CODE_SIZE; i++) {
@@ -48,87 +47,160 @@ const char* get_amino_acid(const char* triplet) {
             return genetic_code[i].amino_acid;
         }
     }
-    return "Неизвестная группа";  // Если триплет не найден
-}
-
-// Функция для нахождения группы аминокислоты
-int get_amino_acid_group(const char* amino_acid) {
-    for (int i = 0; i < AMINO_ACID_GROUPS; i++) {
-        for (int j = 0; j < AMINO_ACID_GROUP_SIZE && amino_acid_groups[i][j] != NULL; j++) {
-            if (strcmp(amino_acid, amino_acid_groups[i][j]) == 0) {
-                return i;
-            }
-        }
-    }
-    return -1;  // Если не найдено
+    return "Unknown";  // Если триплет не найден
 }
 
 // Функция для генерации мутации для одного символа триплета
 char generate_mutated_char(char original_char) {
-    char new_char;
-    do {
-        new_char = NUCLEOTIDES[rand() % 4];  // Случайно выбираем новый символ
-    } while (new_char == original_char);  // Повторяем, пока новый символ не будет отличаться
-    return new_char;
+    int index;
+    switch (original_char) {
+        case 'A': index = 0; break;
+        case 'C': index = 1; break;
+        case 'G': index = 2; break;
+        case 'T': index = 3; break;
+        default: return original_char; // Если символ не распознан, возвращаем его же
+    }
+    return nucleotides[index][rand() % 3];
 }
 
-// Функция для мутации ДНК
+// Функция для внесения мутаций
 void mutate_dna(char* dna, int mutation_count) {
     int len = strlen(dna);
+    srand(time(NULL));
     for (int i = 0; i < mutation_count; i++) {
-        int pos = rand() % (len - 2);  // Позиция для триплета
-        char original_triplet[4];
-        strncpy(original_triplet, dna + pos, 3);
-        original_triplet[3] = '\0';
-
-        // Мутация: изменение одного символа в триплете
-        char mutated_triplet[4];
-        strcpy(mutated_triplet, original_triplet);
-
-        int mutate_pos = rand() % 3;  // Выбираем случайную позицию для мутации
-        mutated_triplet[mutate_pos] = generate_mutated_char(mutated_triplet[mutate_pos]);
-
-        // Определяем аминокислоту до и после мутации
-        const char* original_aa = get_amino_acid(original_triplet);
-        const char* mutated_aa = get_amino_acid(mutated_triplet);
-
-        // Определяем группы аминокислот
-        int original_group = get_amino_acid_group(original_aa);
-        int mutated_group = get_amino_acid_group(mutated_aa);
-
-        // Выводим информацию о мутации
-        printf("Номер позиции триплета: %d\n", pos / 3 + 1);
-        printf("Триплет до мутации: %s → %s\n", original_triplet, original_aa);
-        printf("Группа до мутации: %d\n", original_group + 1);
-        printf("Триплет после мутации: %s → %s\n", mutated_triplet, mutated_aa);
-        printf("Группа после мутации: %d\n", mutated_group + 1);
-
-        if (original_group == mutated_group) {
-            printf("Свойства остатка не изменились после мутации.\n");
-        } else {
-            printf("Мутация привела к изменению свойств остатка.\n");
-        }
-        printf("\n");
+        int pos = rand() % len;
+        dna[pos] = generate_mutated_char(dna[pos]);
     }
 }
 
+// Функция для сравнения оригинальной и мутированной ДНК
+void compare_dna(const char* original_dna, const char* mutated_dna) {
+    int len = strlen(original_dna);
+
+    printf("\nИнформация о мутациях:\n\n");
+    for (int i = 0; i < len - 2; i += 3) {
+        char original_triplet[4], mutated_triplet[4];
+        strncpy(original_triplet, original_dna + i, 3);
+        strncpy(mutated_triplet, mutated_dna + i, 3);
+        original_triplet[3] = '\0';
+        mutated_triplet[3] = '\0';
+
+        if (strcmp(original_triplet, mutated_triplet) != 0) {
+            const char* original_aa = get_amino_acid(original_triplet);
+            const char* mutated_aa = get_amino_acid(mutated_triplet);
+            int original_group = (original_aa != NULL) ? original_aa[0] : -1;
+            int mutated_group = (mutated_aa != NULL) ? mutated_aa[0] : -1;
+
+            printf("Номер позиции триплета: %d\n", i / 3 + 1);
+            printf("Триплет до мутации: %s → %s\n", original_triplet, original_aa);
+            printf("Группа до мутации: %d\n", original_group + 1);
+            printf("Триплет после мутации: %s → %s\n", mutated_triplet, mutated_aa);
+            printf("Группа после мутации: %d\n", mutated_group + 1);
+
+            if (original_group == mutated_group) {
+                printf("Свойства остатка не изменились после мутации.\n");
+            } else {
+                printf("Мутация привела к изменению свойств остатка.\n");
+            }
+            printf("\n");
+        }
+    }
+}
+
+//gcc -o dna_mutation dna_mutation.c -DTESTS
+#ifdef TESTS
+void test_get_amino_acid() {
+    assert(strcmp(get_amino_acid("TTT"), "Phe") == 0);
+    assert(strcmp(get_amino_acid("TAC"), "Tyr") == 0);
+    assert(strcmp(get_amino_acid("AAA"), "Lys") == 0);
+    assert(strcmp(get_amino_acid("ZZZ"), "Unknown") == 0);
+    printf("get_amino_acid тест пройден.\n");
+}
+
+void test_generate_mutated_char() {
+    char bases[] = {'A', 'C', 'G', 'T'};
+    for (int i = 0; i < 4; i++) {
+        char mutated = generate_mutated_char(bases[i]);
+        switch (bases[i]) {
+            case 'A':
+                assert(mutated == 'C' || mutated == 'G' || mutated == 'T');
+                break;
+            case 'C':
+                assert(mutated == 'A' || mutated == 'G' || mutated == 'T');
+                break;
+            case 'G':
+                assert(mutated == 'A' || mutated == 'C' || mutated == 'T');
+                break;
+            case 'T':
+                assert(mutated == 'A' || mutated == 'C' || mutated == 'G');
+                break;
+            default:
+                assert(0 && "Invalid base");
+        }
+    }
+    printf("generate_mutated_char пройден");
+}
+
+void test_mutate_dna() {
+    char dna[MAX_DNA_LENGTH] = "TTTCCCAAAGGG";
+    char original_dna[MAX_DNA_LENGTH];
+    strcpy(original_dna, dna);
+
+    int mutation_count = 3;
+    mutate_dna(dna, mutation_count);
+
+    // Проверка, что ДНК изменилась
+    int mutation_changes = 0;
+    for (int i = 0; i < strlen(dna); i++) {
+        if (dna[i] != original_dna[i]) {
+            mutation_changes++;
+        }
+    }
+
+    assert(mutation_changes == mutation_count);
+    printf("mutate_dna тест пройден.\n");
+}
+
+void test_compare_dna() {
+    char original_dna[MAX_DNA_LENGTH] = "TTTCCCAAAGGG";
+    char mutated_dna[MAX_DNA_LENGTH] = "TTTCCGAAAGGG";
+    compare_dna(original_dna, mutated_dna);
+    printf("compare_dna небходтима визуальная проверка.\n");
+}
+
 int main() {
-    FILE *file = fopen("NC_sequence.txt", "r");
+    test_get_amino_acid();
+    test_generate_mutated_char();
+    test_mutate_dna();
+    test_compare_dna();
+    printf("All tests passed.\n");
+    return 0;
+}
+#endif
+
+#ifndef TESTS
+int main() {
+    FILE* file = fopen("NC_sequence.txt", "r");
     if (file == NULL) {
         printf("Ошибка при открытии файла.\n");
         return 1;
     }
 
-    char dna[MAX_DNA_LENGTH];
-    fgets(dna, MAX_DNA_LENGTH, file);
+    char original_dna[MAX_DNA_LENGTH];
+    fgets(original_dna, MAX_DNA_LENGTH, file);
     fclose(file);
+
+    char mutated_dna[MAX_DNA_LENGTH];
+    strcpy(mutated_dna, original_dna);
 
     int mutation_count;
     printf("Введите количество мутаций: ");
     scanf("%d", &mutation_count);
-    printf("\n");
 
-    mutate_dna(dna, mutation_count);
+    mutate_dna(mutated_dna, mutation_count);
+
+    compare_dna(original_dna, mutated_dna);
 
     return 0;
 }
+#endif

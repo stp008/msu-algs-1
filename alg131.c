@@ -1,6 +1,6 @@
-#include <stdio.h>
 #include "complexn.c"
 
+#ifndef TESTS
 int main() {
     const Complex i = {0, 1}; // Мнимая единица
 
@@ -15,3 +15,4 @@ int main() {
 
     return 0;
 }
+#endif

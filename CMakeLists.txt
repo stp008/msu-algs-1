@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.29)
 project(msu_algs C)
 
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED True)
 
 add_executable(alg31 alg31.c)
 add_executable(alg32 alg32.c)
@@ -25,4 +26,12 @@ add_executable(alg113 alg113.c)
 add_executable(alg114 alg114.c)
 add_executable(alg131 alg131.c)
 add_executable(alg142 alg142.c)
+add_executable(alg151 alg151.c)
+add_executable(alg151Tests alg151Tests.c)
 add_executable(alg173 alg173.c)
+add_executable(complexn complexn.c)
+
+add_library(list listImpl.c)
+
+target_link_libraries(alg151Tests list)
+target_link_libraries(alg151 list)
